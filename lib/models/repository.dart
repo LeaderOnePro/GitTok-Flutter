@@ -38,7 +38,7 @@ class Repository {
       // Add another try-catch here for safety during Contributor mapping
       try {
          contributors = builtByList
-           .where((i) => i is Map<String, dynamic>) // Ensure items are maps
+           .whereType<Map<String, dynamic>>() // Ensure items are maps
            .map((i) => Contributor.fromJson(i as Map<String, dynamic>))
            .toList();
       } catch (e) {
