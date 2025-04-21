@@ -7,15 +7,15 @@ import '../models/repo.dart';
 class RepoItem extends StatefulWidget {
   final Repo repo;
 
-  const RepoItem({Key? key, required this.repo}) : super(key: key);
+  const RepoItem({super.key, required this.repo});
 
   @override
   State<RepoItem> createState() => _RepoItemState();
 }
 
 class _RepoItemState extends State<RepoItem> {
-  bool _summaryLoaded = false;
-  String _summary = 'AI 总结加载中...';
+  final bool _summaryLoaded = false;
+  final String _summary = 'AI 总结加载中...';
 
   Future<void> _launchUrl(String url) async {
     final Uri uri = Uri.parse(url);
