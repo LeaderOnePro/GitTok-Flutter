@@ -39,7 +39,7 @@ class Repository {
       try {
          contributors = builtByList
            .whereType<Map<String, dynamic>>() // Ensure items are maps
-           .map((i) => Contributor.fromJson(i as Map<String, dynamic>))
+           .map((i) => Contributor.fromJson(i))
            .toList();
       } catch (e) {
           if (kDebugMode) {
