@@ -103,6 +103,7 @@ class _HomePageState extends State<HomePage> {
             return PageView.builder(
               scrollDirection: Axis.vertical,
               physics: const BouncingScrollPhysics(),
+              pageSnapping: false,
               itemCount: repositories.length,
               itemBuilder: (context, index) {
                 final repo = repositories[index];
