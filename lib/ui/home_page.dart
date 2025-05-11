@@ -102,6 +102,7 @@ class _HomePageState extends State<HomePage> {
             // Use RepositoryCard inside PageView.builder
             return PageView.builder(
               scrollDirection: Axis.vertical,
+              physics: const BouncingScrollPhysics(),
               itemCount: repositories.length,
               itemBuilder: (context, index) {
                 final repo = repositories[index];
