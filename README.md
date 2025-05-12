@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # GitTok Flutter 📱
 
 这是 [GitTok Web App](https://github.com/LeaderOnePro/GitTok) 的 Flutter 实现版本，旨在提供一个原生应用体验，让您像刷 TikTok 一样浏览 GitHub Trending 项目。
@@ -73,7 +72,6 @@
 ## 📄 许可证
 
 本项目采用 [MIT 许可证](LICENSE)。
-=======
 # GitTok - Flutter 版
 
 ## 项目概述
@@ -140,4 +138,3 @@
 ## 许可证
 
 [MIT](LICENSE)
->>>>>>> 03b2d7f (update)
