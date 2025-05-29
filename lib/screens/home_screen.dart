@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Expanded(
                 child: _isLoading
-                    ? Center(child: Image.asset('assets/octocat.png')) // TODO: 请将八爪猫图标命名为 octocat.png 并放置在 assets 文件夹下，并在 pubspec.yaml 中声明
+                    ? Center(child: Image.network('https://github.githubassets.com/images/modules/logos_page/Octocat.png'))
                     : _repos.isEmpty
                         ? const Center(child: Text('No trending repositories found.'))
                         : ListView.builder(
