@@ -43,26 +43,8 @@ class _HomePageState extends State<HomePage> {
         title: const Text('GitTok Flutter'),
         backgroundColor: Colors.black.withOpacity(0.3), // Make AppBar semi-transparent
         elevation: 0, // Remove shadow
-        actions: [
-          PopupMenuButton<TrendingSince>(
-            initialValue: _selectedSince,
-            onSelected: _changeSince,
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<TrendingSince>>[
-              const PopupMenuItem<TrendingSince>(
-                value: TrendingSince.daily,
-                child: Text('Today'),
-              ),
-              const PopupMenuItem<TrendingSince>(
-                value: TrendingSince.weekly,
-                child: Text('This Week'),
-              ),
-              const PopupMenuItem<TrendingSince>(
-                value: TrendingSince.monthly,
-                child: Text('This Month'),
-              ),
-            ],
-            icon: const Icon(Icons.filter_list),
-          ),
+        actions: <Widget>[
+          _buildFilterChips(),
         ],
       ),
       extendBodyBehindAppBar: true, // Allow PageView content to go behind AppBar
@@ -77,27 +59,36 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(color: Colors.white),
+                      CircularProgressIndicator(), // Use theme default color
                       SizedBox(height: 16),
-                      Text("Loading Trending...", style: TextStyle(color: Colors.white70))
+                      Text("Loading Trending...", style: TextStyle(color: Colors.white70)) // Keep this for dark loading screen
                     ],
                   )),
             );
           } else if (snapshot.hasError) {
             return Center(
-               child: Padding(
-                 padding: const EdgeInsets.all(16.0),
-                 child: Text(
-                    'Error loading repositories: ${snapshot.error}',
-                    style: TextStyle(color: Theme.of(context).colorScheme.error),
-                    textAlign: TextAlign.center,
-                  ),
-               )
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Error loading repositories: ${snapshot.error}',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             );
           } else if (snapshot.hasData) {
             final repositories = snapshot.data!;
             if (repositories.isEmpty) {
-              return const Center(child: Text('No trending repositories found.'));
+              return Center(
+                child: Text(
+                  'No trending repositories found.',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                ),
+              );
             }
             // Use RepositoryCard inside PageView.builder
             return PageView.builder(
@@ -116,4 +107,46 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-} 
+
+  Widget _buildFilterChips() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: TrendingSince.values.map((TrendingSince since) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: FilterChip(
+            label: Text(since.displayName),
+            selected: _selectedSince == since,
+            onSelected: (bool selected) {
+              if (selected) {
+                _changeSince(since);
+              }
+            },
+            showCheckmark: false, // Optional: to make it look more like tabs
+            selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+            labelStyle: TextStyle(
+              color: _selectedSince == since
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+extension TrendingSinceExtension on TrendingSince {
+  String get displayName {
+    switch (this) {
+      case TrendingSince.daily:
+        return 'Day';
+      case TrendingSince.weekly:
+        return 'Week';
+      case TrendingSince.monthly:
+        return 'Month';
+      default:
+        return '';
+    }
+  }
+}
