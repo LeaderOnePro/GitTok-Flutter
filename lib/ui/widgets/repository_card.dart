@@ -229,15 +229,16 @@ class _RepositoryCardState extends State<RepositoryCard> {
 
   // Helper widget for the Summary section UI
   Widget _buildSummarySection() {
+    final theme = Theme.of(context);
     if (_isLoadingSummary) {
       return const SizedBox(
         height: 40, // Give loading indicator some space
-        child: Center(child: CircularProgressIndicator(color: Colors.white)),
+        child: Center(child: CircularProgressIndicator()), // Use theme default color
       );
     } else if (_summaryError != null) {
       return Text(
         _summaryError!,
-        style: const TextStyle(color: Colors.redAccent),
+        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
         textAlign: TextAlign.center,
       );
     } else if (_summary != null) {
@@ -251,7 +252,10 @@ class _RepositoryCardState extends State<RepositoryCard> {
          child: Text(
             _summary!,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white.withOpacity(0.9), height: 1.4),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: Colors.white.withOpacity(0.9), // Keep high contrast against image bg
+              height: 1.4,
+            ),
             maxLines: 6, // Limit summary lines as well
             overflow: TextOverflow.ellipsis,
          ),
@@ -263,10 +267,11 @@ class _RepositoryCardState extends State<RepositoryCard> {
         label: const Text('获取 AI 总结'),
         onPressed: _fetchSummary, // Call the fetch method
         style: ElevatedButton.styleFrom(
-          //foregroundColor: Colors.white, backgroundColor: Colors.deepPurple.withOpacity(0.7), // Button styling
+          backgroundColor: theme.colorScheme.primaryContainer.withOpacity(0.8),
+          foregroundColor: theme.colorScheme.onPrimaryContainer,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         ),
       );
     }
   }
-} 
+}
