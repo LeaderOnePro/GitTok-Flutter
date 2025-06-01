@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GitTok Flutter'),
+        title: const Text('GitTok'),
         backgroundColor: Colors.black.withOpacity(0.3), // Make AppBar semi-transparent
         elevation: 0, // Remove shadow
         actions: <Widget>[
