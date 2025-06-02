@@ -1,8 +1,13 @@
 import 'dart:ui'; // For ImageFilter
+import 'dart:ui'; // For ImageFilter
+import 'dart:ui'; // For ImageFilter
+// import 'dart:ui'; // For ImageFilter // This was duplicated, removing one
 import 'package:flutter/foundation.dart'; // For kDebugMode
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart'; // Import for Share functionality
 import '../../models/repository.dart'; // Adjust import path as needed
 import '../../services/api_service.dart'; // Import ApiService
+import '../screens/deepwiki_page.dart'; // Import for DeepWikiPage
 
 // Convert to StatefulWidget
 class RepositoryCard extends StatefulWidget {
@@ -52,135 +57,271 @@ class _RepositoryCardState extends State<RepositoryCard> {
 
   @override
   Widget build(BuildContext context) {
-    // Get screen size for dynamic sizing
-    final screenSize = MediaQuery.of(context).size;
-
     return Stack(
-      fit: StackFit.expand, // Make stack fill the PageView item
+      fit: StackFit.expand,
       children: [
-        // 1. Background Image (Author's Avatar)
-        if (widget.repository.avatar.isNotEmpty)
-          Image.network(
-            widget.repository.avatar,
-            fit: BoxFit.cover,
-            // Add error builder to handle potential loading failures gracefully
-            errorBuilder: (context, error, stackTrace) {
-              // Display a placeholder or icon if avatar fails to load
-              return Container(
-                color: Colors.grey[800], // Dark placeholder background
-                child: const Center(
-                  child: Icon(
-                    Icons.person, // Placeholder icon
-                    color: Colors.white54,
-                    size: 100,
+        // Layer 1: Background Image (Author's Avatar)
+        SizedBox.expand( // Ensures the image tries to fill the space
+          child: widget.repository.avatar.isNotEmpty
+              ? Image.network(
+                  widget.repository.avatar,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[800],
+                      child: const Center(
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.white54,
+                          size: 100,
+                        ),
+                      ),
+                    );
+                  },
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: Colors.grey[800],
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
+                )
+              : Container( // Fallback if avatar is empty
+                  color: Colors.grey[800],
+                  child: const Center(
+                    child: Icon(
+                      Icons.person,
+                      color: Colors.white54,
+                      size: 100,
+                    ),
                   ),
                 ),
-              );
-            },
-             // Optional: Add a loading builder for a smoother experience
-             loadingBuilder: (context, child, loadingProgress) {
-               if (loadingProgress == null) return child;
-               return Container(
-                 color: Colors.grey[800],
-                 child: Center(
-                   child: CircularProgressIndicator(
-                     value: loadingProgress.expectedTotalBytes != null
-                         ? loadingProgress.cumulativeBytesLoaded /
-                             loadingProgress.expectedTotalBytes!
-                         : null,
-                   ),
-                 ),
-               );
-            },
-          ),
-        // Placeholder if avatar URL is empty
-        if (widget.repository.avatar.isEmpty)
-           Container(
-             color: Colors.grey[800],
-             child: const Center(
-               child: Icon(
-                 Icons.person, // Placeholder icon
-                 color: Colors.white54,
-                 size: 100,
-               ),
-             ),
-           ),
-
-        // 2. Frosted Glass Overlay for content
+        ),
+        
+        // Layer 2: Blur Layer (applied to the background image)
         Positioned.fill(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Adjust blur intensity
-            child: Container(
-              // Semi-transparent black background for the blur effect
-              color: Colors.black.withOpacity(0.3), // Adjust opacity
+          child: ClipRRect( // Important to contain the blur
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0), // Increased blur
+              child: Container(
+                color: Colors.black.withOpacity(0.1), // Slight tint for the blur
+              ),
             ),
           ),
         ),
 
-        // 3. Content Area (Centered)
-        Center(
+        // Layer 3: Actual Content Area
+        Positioned.fill(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 60.0), // Adjust padding if needed
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // --- Repository Name & Author ---
+                // Clear Avatar
+                SizedBox(
+                  width: 150,
+                  height: 150,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: widget.repository.avatar.isNotEmpty
+                        ? Image.network(
+                            widget.repository.avatar,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[700]?.withOpacity(0.5), // Slightly transparent fallback
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.person_off_outlined, // Different icon for clear avatar error
+                                    color: Colors.white70,
+                                    size: 75,
+                                  ),
+                                ),
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                color: Colors.grey[700]?.withOpacity(0.5),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0, // Thinner progress bar
+                                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white70),
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        : Container( // Fallback if avatar is empty for the clear view
+                            decoration: BoxDecoration(
+                              color: Colors.grey[700]?.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.person_outline, // Different icon
+                                color: Colors.white70,
+                                size: 75,
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 20), // Increased spacing
+
+                // Repository Name & Author
                 Text(
                   '${widget.repository.author} / ${widget.repository.name}',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Colors.white, // White text for better contrast
-                    fontWeight: FontWeight.bold,
-                    shadows: [ // Add a subtle shadow for readability
-                      Shadow(
-                        blurRadius: 4.0,
-                        color: Colors.black.withOpacity(0.5),
-                        offset: const Offset(2.0, 2.0),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        shadows: const [
+                          Shadow(
+                              blurRadius: 3.0,
+                              color: Colors.black87,
+                              offset: Offset(1.5, 1.5))
+                        ],
                       ),
-                    ]
-                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10), // Adjusted spacing
 
-                // --- Description ---
+                // Description
                 Text(
                   widget.repository.description,
                   textAlign: TextAlign.center,
-                  maxLines: 4, // Limit description lines
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.white.withOpacity(0.9),
-                     shadows: [ // Add a subtle shadow
-                      Shadow(
-                        blurRadius: 2.0,
-                        color: Colors.black.withOpacity(0.5),
-                        offset: const Offset(1.0, 1.0),
-                      ),
-                    ]
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // --- Stats Row (Stars, Forks, Language) ---
-                _buildStatsRow(context),
-
-                const SizedBox(height: 12),
-
-                 // --- Current Period Stars ---
-                Text(
-                  'Stars today: ${widget.repository.currentPeriodStars}', // Adjust text based on filter later
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withOpacity(0.8),
-                  ),
+                        color: Colors.white.withOpacity(0.9),
+                        shadows: const [
+                           Shadow(
+                              blurRadius: 2.0,
+                              color: Colors.black54,
+                              offset: Offset(1.0, 1.0))
+                        ],
+                      ),
                 ),
-                const SizedBox(height: 20), // Add space before summary section
+                const SizedBox(height: 18), // Adjusted spacing
 
-                // --- AI Summary Section ---
-                _buildSummarySection(), // Build the summary UI dynamically
+                // Stats Row
+                _buildStatsRow(context),
+                const SizedBox(height: 10), // Adjusted spacing
 
-                // TODO: Add Action Buttons (Share, View on GitHub?)
+                // Current Period Stars
+                Text(
+                  'Stars: ${widget.repository.currentPeriodStars} (this period)', // Clarified text
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withOpacity(0.85),
+                        shadows: const [
+                           Shadow(
+                              blurRadius: 2.0,
+                              color: Colors.black54,
+                              offset: Offset(1.0, 1.0))
+                        ],
+                      ),
+                ),
+                const SizedBox(height: 16), // Spacing before summary
+                _buildSummarySection(), // AI Summary section
+                const SizedBox(height: 20), // Spacing after summary, before buttons
 
+                // Action Buttons Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.share, color: Colors.white, size: 28),
+                      tooltip: 'Share',
+                      onPressed: () async {
+                        if (widget.repository.url.isNotEmpty) {
+                          await Share.share(
+                            widget.repository.url,
+                            subject: 'Check out this repository: ${widget.repository.name}',
+                          );
+                        } else {
+                          if (kDebugMode) {
+                            print("Repository URL is empty, cannot share.");
+                          }
+                          // Optional: Show a SnackBar if context is available and it's appropriate
+                          // ScaffoldMessenger.of(context).showSnackBar(
+                          //   const SnackBar(content: Text('Repository URL is not available to share.')),
+                          // );
+                        }
+                      },
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(Icons.public, color: Colors.white, size: 28),
+                      label: const Text(
+                        "DeepWiki",
+                        style: TextStyle(
+                          color: Colors.white, 
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                           shadows: [ // Add shadow for better visibility
+                            Shadow(
+                              blurRadius: 2.0,
+                              color: Colors.black54,
+                              offset: Offset(1.0, 1.0),
+                            ),
+                          ]
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(color: Colors.white.withOpacity(0.5)),
+                        ),
+                        backgroundColor: Colors.white.withOpacity(0.1),
+                      ),
+                      onPressed: () {
+                        String originalUrl = widget.repository.url;
+                        String deepWikiUrl = originalUrl; // Default to original
+
+                        if (originalUrl.isNotEmpty && originalUrl.contains('github.com')) {
+                          deepWikiUrl = originalUrl.replaceFirst('github.com', 'deepwiki.com');
+                        } else if (originalUrl.isNotEmpty) {
+                          // Fallback for non-GitHub URLs or if replacement somehow fails
+                          // Use the repository name for a search query on DeepWiki
+                          String repoNameForSearch = widget.repository.name; 
+                          deepWikiUrl = 'https://deepwiki.com/search?q=${Uri.encodeComponent(repoNameForSearch)}';
+                        } else {
+                          if (kDebugMode) {
+                            print("Repository URL is empty, cannot generate DeepWiki URL for ${widget.repository.name}.");
+                          }
+                          // Optionally, show a SnackBar or disable the button if URL is empty
+                          // ScaffoldMessenger.of(context).showSnackBar(
+                          //   const SnackBar(content: Text('Repository URL is not available for DeepWiki.')),
+                          // );
+                          return; // Don't proceed if URL is empty
+                        }
+                        
+                        if (kDebugMode) {
+                          print("Navigating to DeepWiki: $deepWikiUrl for ${widget.repository.name}");
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DeepWikiPage(url: deepWikiUrl),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                )
               ],
             ),
           ),
