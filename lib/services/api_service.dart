@@ -114,7 +114,8 @@ class ApiService {
   }
 
   Future<String> fetchSummary(String owner, String repo) async {
-    final response = await http.get(Uri.parse('$_baseUrl/summarize?owner=$owner&repo=$repo'));
+    // The 'owner' parameter in the request URL should be 'author' to match the backend API.
+    final response = await http.get(Uri.parse('$_baseUrl/summarize?author=$owner&repo=$repo'));
 
     if (response.statusCode == 200) {
       Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
