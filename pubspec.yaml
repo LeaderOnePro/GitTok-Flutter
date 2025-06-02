@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.2.1
   flutter_material_symbols: ^0.0.4
+  webview_flutter: ^4.13.0
+  share_plus: ^11.0.0
 
 dev_dependencies:
   flutter_test:
