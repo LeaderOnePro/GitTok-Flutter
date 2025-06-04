@@ -125,8 +125,8 @@ class _HomePageState extends State<HomePage> {
             showCheckmark: false, // Optional: to make it look more like tabs
             selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
             labelStyle: TextStyle(
-              color: _selectedSince == since
-                  ? Theme.of(context).colorScheme.onPrimary
+              color: _selectedSince == since 
+                  ? Theme.of(context).colorScheme.onPrimary 
                   : Theme.of(context).colorScheme.onSurface,
             ),
           ),
