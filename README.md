@@ -9,25 +9,31 @@
 
 ```plaintext
 GitTok-Flutter/
+├── android/         # Android 原生工程
+├── ios/             # iOS 原生工程
+├── linux/           # Linux 桌面支持
+├── macos/           # macOS 桌面支持
+├── windows/         # Windows 桌面支持
+├── web/             # Web 支持
 ├── lib/
-│   ├── main.dart                # 应用入口
+│   ├── main.dart
 │   ├── models/
-│   │   └── repository.dart      # Trending 仓库数据模型
+│   │   └── repository.dart
 │   ├── services/
-│   │   └── api_service.dart     # API 网络请求与数据处理
+│   │   └── api_service.dart
 │   ├── screens/
-│   │   ├── home_page.dart       # TikTok 风格主页面
-│   │   ├── screens/
-│   │   │   └── deepwiki_page.dart
-│   │   └── widgets/
-│   │       └── repository_card.dart
+│   └── ui/
+│       ├── home_page.dart
+│       ├── screens/
+│       │   └── deepwiki_page.dart
+│       └── widgets/
+│           └── repository_card.dart
 ├── test/
-│   └── widget_test.dart         # 测试用例
-├── android/                     # Android 原生工程
-├── web/                         # Web 支持
-├── build/                       # 构建产物
-├── pubspec.yaml                 # 依赖与配置
-└── README.md
+│   └── widget_test.dart
+├── build/           # 构建产物
+├── pubspec.yaml     # 依赖与配置
+├── README.md
+└── ...（省略部分配置文件）
 ```
 
 ---
