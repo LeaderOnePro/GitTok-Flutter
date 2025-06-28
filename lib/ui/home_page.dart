@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart'; // Import ApiService
 import '../models/repository.dart'; // Import Repository model
 import 'widgets/repository_card.dart'; // Import the new card widget
+import 'widgets/filter_chips.dart'; // Import the new FilterChips widget
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -44,7 +45,10 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.black.withOpacity(0.3), // Make AppBar semi-transparent
         elevation: 0, // Remove shadow
         actions: <Widget>[
-          _buildFilterChips(),
+          FilterChips(
+            selectedSince: _selectedSince,
+            onSelected: _changeSince,
+          ),
         ],
       ),
       extendBodyBehindAppBar: true, // Allow PageView content to go behind AppBar
@@ -106,47 +110,5 @@ class _HomePageState extends State<HomePage> {
         },
       ),
     );
-  }
-
-  Widget _buildFilterChips() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: TrendingSince.values.map((TrendingSince since) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: FilterChip(
-            label: Text(since.displayName),
-            selected: _selectedSince == since,
-            onSelected: (bool selected) {
-              if (selected) {
-                _changeSince(since);
-              }
-            },
-            showCheckmark: false, // Optional: to make it look more like tabs
-            selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-            labelStyle: TextStyle(
-              color: _selectedSince == since 
-                  ? Theme.of(context).colorScheme.onPrimary 
-                  : Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-extension TrendingSinceExtension on TrendingSince {
-  String get displayName {
-    switch (this) {
-      case TrendingSince.daily:
-        return 'Day';
-      case TrendingSince.weekly:
-        return 'Week';
-      case TrendingSince.monthly:
-        return 'Month';
-      default:
-        return '';
-    }
   }
 }
