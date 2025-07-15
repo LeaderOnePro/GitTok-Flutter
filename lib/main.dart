@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.dark, // Explicitly set dark brightness
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: Colors.indigo, // Changed from Colors.deepPurple to Colors.indigo
           brightness: Brightness.dark, // Ensure seed color generates dark scheme
         ),
         useMaterial3: true,
