@@ -1,4 +1,4 @@
-package com.example.gittok
+package com.leaderonepro.gittok
 
 import io.flutter.embedding.android.FlutterActivity
 
