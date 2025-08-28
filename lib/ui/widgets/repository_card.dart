@@ -1,3 +1,4 @@
+import 'dart:ui'; // For ImageFilter (BackdropFilter)
 import 'package:flutter/foundation.dart'; // For kDebugMode
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart' as share_plus; // Import for Share functionality
@@ -55,72 +56,110 @@ class _RepositoryCardState extends State<RepositoryCard> {
 
   @override
   Widget build(BuildContext context) {
-    // Get language-based color system
-    final textColor = LanguageGradients.getTextColorForLanguage(widget.repository.language);
+    // Get language-based color system for accent colors
     final primaryColor = LanguageGradients.getLanguagePrimaryColor(widget.repository.language);
     
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LanguageGradients.getLanguageGradient(widget.repository.language),
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Subtle overlay for better text readability
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(0.0),
-                  Colors.black.withOpacity(0.3),
-                ],
-                stops: const [0.0, 1.0],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Layer 1: Background Image (Repository owner's avatar with breathing effect)
+        SizedBox.expand(
+          child: widget.repository.avatar.isNotEmpty
+              ? Image.network(
+                  widget.repository.avatar,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        gradient: LanguageGradients.getLanguageGradient(widget.repository.language),
+                      ),
+                    );
+                  },
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      decoration: BoxDecoration(
+                        gradient: LanguageGradients.getLanguageGradient(widget.repository.language),
+                      ),
+                      child: const Center(child: CircularProgressIndicator()),
+                    );
+                  },
+                )
+              : Container(
+                  decoration: BoxDecoration(
+                    gradient: LanguageGradients.getLanguageGradient(widget.repository.language),
+                  ),
+                ),
+        ),
+        
+        // Layer 2: Blur and overlay for readability with breathing effect
+        Positioned.fill(
+          child: ClipRRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.3),
+                      Colors.black.withOpacity(0.7),
+                    ],
+                    stops: const [0.0, 1.0],
+                  ),
+                ),
               ),
             ),
           ),
-          
-          // Main content with improved hierarchy
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Top section: Author info (compact)
-                  _buildAuthorSection(textColor, primaryColor),
-                  
-                  // Spacer - push main content to golden ratio position
-                  const Spacer(flex: 2),
-                  
-                  // Main section: Project focus area  
-                  _buildProjectSection(textColor, primaryColor),
-                  
-                  const Spacer(flex: 1),
-                  
-                  // Bottom section: Actions
-                  _buildActionSection(textColor, primaryColor),
-                ],
-              ),
+        ),
+        
+        // Layer 3: Main content with enhanced text shadows for readability
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top section: Author info (compact) with clear avatar
+                _buildAuthorSection(primaryColor),
+                
+                // Spacer - push main content to golden ratio position
+                const Spacer(flex: 2),
+                
+                // Main section: Project focus area  
+                _buildProjectSection(primaryColor),
+                
+                const Spacer(flex: 1),
+                
+                // Bottom section: Actions with text labels
+                _buildActionSection(primaryColor),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // Top author info section - compact design
-  Widget _buildAuthorSection(Color textColor, Color primaryColor) {
+  // Top author info section with clear avatar and strong text shadows
+  Widget _buildAuthorSection(Color primaryColor) {
     return Row(
       children: [
-        // Small avatar 
+        // Clear avatar (not blurred, floating above background)
         Container(
-          width: 32,
-          height: 32,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: textColor.withOpacity(0.3), width: 1),
+            border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: ClipOval(
             child: widget.repository.avatar.isNotEmpty
@@ -128,41 +167,72 @@ class _RepositoryCardState extends State<RepositoryCard> {
                     widget.repository.avatar,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.person, color: textColor.withOpacity(0.7), size: 20);
+                      return Container(
+                        color: primaryColor.withOpacity(0.3),
+                        child: Icon(Icons.person, color: Colors.white, size: 24),
+                      );
                     },
                   )
-                : Icon(Icons.person, color: textColor.withOpacity(0.7), size: 20),
+                : Container(
+                    color: primaryColor.withOpacity(0.3),
+                    child: Icon(Icons.person, color: Colors.white, size: 24),
+                  ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         
-        // Author name
+        // Author name with enhanced shadow
         Text(
           widget.repository.author,
-          style: TextStyle(
-            color: textColor.withOpacity(0.8),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            shadows: [
+              Shadow(
+                blurRadius: 8.0,
+                color: Colors.black,
+                offset: Offset(1.0, 1.0),
+              ),
+              Shadow(
+                blurRadius: 16.0,
+                color: Colors.black,
+                offset: Offset(2.0, 2.0),
+              ),
+            ],
           ),
         ),
         
         const Spacer(),
         
-        // Language tag - using language primary color
+        // Language tag - using language primary color with shadow
         if (widget.repository.language.isNotEmpty && widget.repository.language != 'Unknown')
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: primaryColor.withOpacity(0.2),
+              color: primaryColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: primaryColor.withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               widget.repository.language,
-              style: TextStyle(
-                color: textColor,
+              style: const TextStyle(
+                color: Colors.white,
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
+                shadows: [
+                  Shadow(
+                    blurRadius: 2.0,
+                    color: Colors.black54,
+                    offset: Offset(0.5, 0.5),
+                  ),
+                ],
               ),
             ),
           ),
@@ -170,20 +240,32 @@ class _RepositoryCardState extends State<RepositoryCard> {
     );
   }
 
-  // Main project info section - 48px large title
-  Widget _buildProjectSection(Color textColor, Color primaryColor) {
+  // Main project info section - enhanced for image background readability
+  Widget _buildProjectSection(Color primaryColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Project name - 48px bold, following visual hierarchy requirements
+        // Project name - 48px bold with strong shadows for readability
         Text(
           widget.repository.name,
-          style: TextStyle(
-            color: textColor,
+          style: const TextStyle(
+            color: Colors.white,
             fontSize: 48,
             fontWeight: FontWeight.w900,
             height: 1.1,
             letterSpacing: -1.0,
+            shadows: [
+              Shadow(
+                blurRadius: 12.0,
+                color: Colors.black,
+                offset: Offset(2.0, 2.0),
+              ),
+              Shadow(
+                blurRadius: 24.0,
+                color: Colors.black,
+                offset: Offset(4.0, 4.0),
+              ),
+            ],
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -191,14 +273,26 @@ class _RepositoryCardState extends State<RepositoryCard> {
         
         const SizedBox(height: 16),
         
-        // Description
+        // Description with enhanced readability
         Text(
           widget.repository.description,
-          style: TextStyle(
-            color: textColor.withOpacity(0.9),
+          style: const TextStyle(
+            color: Colors.white,
             fontSize: 16,
             height: 1.4,
             fontWeight: FontWeight.w400,
+            shadows: [
+              Shadow(
+                blurRadius: 8.0,
+                color: Colors.black,
+                offset: Offset(1.0, 1.0),
+              ),
+              Shadow(
+                blurRadius: 16.0,
+                color: Colors.black,
+                offset: Offset(2.0, 2.0),
+              ),
+            ],
           ),
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
@@ -206,44 +300,59 @@ class _RepositoryCardState extends State<RepositoryCard> {
         
         const SizedBox(height: 20),
         
-        // Stats row - more compact
+        // Stats row with enhanced shadows
         Row(
           children: [
-            _buildStatChip(Icons.star_outline, widget.repository.stars.toString(), textColor, primaryColor),
+            _buildStatChip(Icons.star_outline, widget.repository.stars.toString(), primaryColor),
             const SizedBox(width: 12),
-            _buildStatChip(Icons.fork_right_outlined, widget.repository.forks.toString(), textColor, primaryColor),
+            _buildStatChip(Icons.fork_right_outlined, widget.repository.forks.toString(), primaryColor),
             const SizedBox(width: 12),
-            _buildStatChip(Icons.trending_up, '${widget.repository.currentPeriodStars}', textColor, primaryColor),
+            _buildStatChip(Icons.trending_up, '${widget.repository.currentPeriodStars}', primaryColor),
           ],
         ),
         
         const SizedBox(height: 16),
         
         // AI summary section
-        _buildEnhancedSummarySection(textColor, primaryColor),
+        _buildEnhancedSummarySection(primaryColor),
       ],
     );
   }
 
-  // Stat chip component
-  Widget _buildStatChip(IconData icon, String text, Color textColor, Color primaryColor) {
+  // Stat chip component with shadow for floating effect
+  Widget _buildStatChip(IconData icon, String text, Color primaryColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: textColor.withOpacity(0.1),
+        color: Colors.black.withOpacity(0.4),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: textColor.withOpacity(0.8)),
+          Icon(icon, size: 14, color: Colors.white),
           const SizedBox(width: 4),
           Text(
             text,
-            style: TextStyle(
-              color: textColor.withOpacity(0.9),
+            style: const TextStyle(
+              color: Colors.white,
               fontSize: 13,
               fontWeight: FontWeight.w600,
+              shadows: [
+                Shadow(
+                  blurRadius: 2.0,
+                  color: Colors.black,
+                  offset: Offset(0.5, 0.5),
+                ),
+              ],
             ),
           ),
         ],
@@ -251,31 +360,32 @@ class _RepositoryCardState extends State<RepositoryCard> {
     );
   }
 
-  // Bottom action section - clear primary/secondary hierarchy
-  Widget _buildActionSection(Color textColor, Color primaryColor) {
-    return Row(
+  // Bottom action section with text labels - MUCH clearer UX
+  Widget _buildActionSection(Color primaryColor) {
+    return Column(
       children: [
-        // Primary action - View project (large button)
-        Expanded(
-          flex: 3,
+        // Primary action - View Project (full width for maximum tap area)
+        SizedBox(
+          width: double.infinity,
           child: ElevatedButton.icon(
-            icon: Icon(Icons.launch, color: textColor, size: 20),
-            label: Text(
-              'View Project',
+            icon: const Icon(Icons.launch, color: Colors.white, size: 20),
+            label: const Text(
+              'View on GitHub',
               style: TextStyle(
-                color: textColor,
+                color: Colors.white,
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: textColor.withOpacity(0.15),
-              foregroundColor: textColor,
-              elevation: 0,
+              backgroundColor: Colors.black.withOpacity(0.6),
+              foregroundColor: Colors.white,
+              elevation: 8,
+              shadowColor: Colors.black.withOpacity(0.5),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: textColor.withOpacity(0.3)),
+                side: BorderSide(color: Colors.white.withOpacity(0.3)),
               ),
             ),
             onPressed: () async {
@@ -289,75 +399,126 @@ class _RepositoryCardState extends State<RepositoryCard> {
           ),
         ),
         
-        const SizedBox(width: 12),
+        const SizedBox(height: 12),
         
-        // Secondary actions - tool buttons
-        _buildToolButton(
-          icon: Icons.public,
-          tooltip: 'DeepWiki',
-          color: textColor,
-          onTap: () => _openDeepWiki(),
-        ),
-        
-        const SizedBox(width: 8),
-        
-        _buildToolButton(
-          icon: Icons.analytics_outlined,
-          tooltip: 'Zread',
-          color: Colors.orange,
-          onTap: () => _openZread(),
-        ),
-        
-        const SizedBox(width: 8),
-        
-        _buildToolButton(
-          icon: Icons.share,
-          tooltip: 'Share',
-          color: textColor,
-          onTap: () => _shareRepository(),
+        // Secondary actions row with CLEAR TEXT LABELS
+        Row(
+          children: [
+            // DeepWiki - now with clear text label
+            Expanded(
+              child: TextButton.icon(
+                icon: const Icon(Icons.public, color: Colors.white, size: 18),
+                label: const Text(
+                  'DeepWiki',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 4.0,
+                        color: Colors.black,
+                        offset: Offset(1.0, 1.0),
+                      ),
+                    ],
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.black.withOpacity(0.4),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                  ),
+                ),
+                onPressed: () => _openDeepWiki(),
+              ),
+            ),
+            
+            const SizedBox(width: 8),
+            
+            // Zread - now with clear text label  
+            Expanded(
+              child: TextButton.icon(
+                icon: const Icon(Icons.analytics_outlined, color: Colors.white, size: 18),
+                label: const Text(
+                  'Zread',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 4.0,
+                        color: Colors.black,
+                        offset: Offset(1.0, 1.0),
+                      ),
+                    ],
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.orange.withOpacity(0.7),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(color: Colors.orange.withOpacity(0.5)),
+                  ),
+                ),
+                onPressed: () => _openZread(),
+              ),
+            ),
+            
+            const SizedBox(width: 8),
+            
+            // Share - compact but still clear
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.black.withOpacity(0.4),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                ),
+              ),
+              onPressed: () => _shareRepository(),
+              child: const Text(
+                'Share',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 4.0,
+                      color: Colors.black,
+                      offset: Offset(1.0, 1.0),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  // Tool button component
-  Widget _buildToolButton({
-    required IconData icon,
-    required String tooltip,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Icon(
-            icon,
-            color: color,
-            size: 20,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Enhanced AI summary section
-  Widget _buildEnhancedSummarySection(Color textColor, Color primaryColor) {
+  // Enhanced AI summary section with better contrast on image background
+  Widget _buildEnhancedSummarySection(Color primaryColor) {
     if (_isLoadingSummary) {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: textColor.withOpacity(0.05),
+          color: Colors.black.withOpacity(0.5),
           borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -370,11 +531,18 @@ class _RepositoryCardState extends State<RepositoryCard> {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
+            const Text(
               'AI 正在分析...',
               style: TextStyle(
-                color: textColor.withOpacity(0.7),
+                color: Colors.white,
                 fontSize: 13,
+                shadows: [
+                  Shadow(
+                    blurRadius: 2.0,
+                    color: Colors.black,
+                    offset: Offset(0.5, 0.5),
+                  ),
+                ],
               ),
             ),
           ],
@@ -386,14 +554,29 @@ class _RepositoryCardState extends State<RepositoryCard> {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withOpacity(0.3),
           borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.red.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Text(
           _summaryError!,
-          style: TextStyle(
-            color: Colors.red[300],
+          style: const TextStyle(
+            color: Colors.white,
             fontSize: 13,
+            shadows: [
+              Shadow(
+                blurRadius: 2.0,
+                color: Colors.black,
+                offset: Offset(0.5, 0.5),
+              ),
+            ],
           ),
         ),
       );
@@ -403,8 +586,16 @@ class _RepositoryCardState extends State<RepositoryCard> {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: textColor.withOpacity(0.05),
+          color: Colors.black.withOpacity(0.5),
           borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -419,6 +610,13 @@ class _RepositoryCardState extends State<RepositoryCard> {
                     color: primaryColor,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
+                    shadows: const [
+                      Shadow(
+                        blurRadius: 2.0,
+                        color: Colors.black,
+                        offset: Offset(0.5, 0.5),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -426,10 +624,17 @@ class _RepositoryCardState extends State<RepositoryCard> {
             const SizedBox(height: 6),
             Text(
               _summary!,
-              style: TextStyle(
-                color: textColor.withOpacity(0.9),
+              style: const TextStyle(
+                color: Colors.white,
                 fontSize: 13,
                 height: 1.3,
+                shadows: [
+                  Shadow(
+                    blurRadius: 4.0,
+                    color: Colors.black,
+                    offset: Offset(1.0, 1.0),
+                  ),
+                ],
               ),
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
@@ -444,11 +649,23 @@ class _RepositoryCardState extends State<RepositoryCard> {
       icon: Icon(Icons.psychology, color: primaryColor, size: 16),
       label: Text(
         'AI 总结',
-        style: TextStyle(color: primaryColor, fontSize: 13),
+        style: TextStyle(
+          color: primaryColor,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          shadows: const [
+            Shadow(
+              blurRadius: 2.0,
+              color: Colors.black,
+              offset: Offset(0.5, 0.5),
+            ),
+          ],
+        ),
       ),
       style: OutlinedButton.styleFrom(
-        side: BorderSide(color: primaryColor.withOpacity(0.5)),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        side: BorderSide(color: primaryColor.withOpacity(0.8)),
+        backgroundColor: Colors.black.withOpacity(0.3),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       onPressed: _fetchSummary,
