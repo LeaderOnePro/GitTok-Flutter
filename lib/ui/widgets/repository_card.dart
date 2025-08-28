@@ -1,10 +1,8 @@
 import 'dart:ui'; // For ImageFilter
-import 'dart:ui'; // For ImageFilter
-import 'dart:ui'; // For ImageFilter
-// import 'dart:ui'; // For ImageFilter // This was duplicated, removing one
 import 'package:flutter/foundation.dart'; // For kDebugMode
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart'; // Import for Share functionality
+import 'package:share_plus/share_plus.dart' as share_plus; // Import for Share functionality
+import 'package:url_launcher/url_launcher.dart'; // Import for URL launching
 import '../../models/repository.dart'; // Adjust import path as needed
 import '../../services/api_service.dart'; // Import ApiService
 import '../screens/deepwiki_page.dart'; // Import for DeepWikiPage
@@ -247,7 +245,7 @@ class _RepositoryCardState extends State<RepositoryCard> {
                       tooltip: 'Share',
                       onPressed: () async {
                         if (widget.repository.url.isNotEmpty) {
-                          await Share.share(
+                          await share_plus.Share.share(
                             widget.repository.url,
                             subject: 'Check out this repository: ${widget.repository.name}',
                           );
@@ -255,10 +253,6 @@ class _RepositoryCardState extends State<RepositoryCard> {
                           if (kDebugMode) {
                             print("Repository URL is empty, cannot share.");
                           }
-                          // Optional: Show a SnackBar if context is available and it's appropriate
-                          // ScaffoldMessenger.of(context).showSnackBar(
-                          //   const SnackBar(content: Text('Repository URL is not available to share.')),
-                          // );
                         }
                       },
                     ),
@@ -318,6 +312,61 @@ class _RepositoryCardState extends State<RepositoryCard> {
                             builder: (context) => DeepWikiPage(url: deepWikiUrl),
                           ),
                         );
+                      },
+                    ),
+                    TextButton.icon(
+                      icon: const Icon(Icons.analytics_outlined, color: Colors.white, size: 28),
+                      label: const Text(
+                        "Zread",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 2.0,
+                              color: Colors.black54,
+                              offset: Offset(1.0, 1.0),
+                            ),
+                          ]
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(color: Colors.orange.withOpacity(0.7)),
+                        ),
+                        backgroundColor: Colors.orange.withOpacity(0.2),
+                      ),
+                      onPressed: () async {
+                        // Extract repo name from full name (author/repo)
+                        String repoName = widget.repository.name;
+                        if (repoName.contains('/')) {
+                          repoName = repoName.split('/').last;
+                        }
+                        
+                        // Build Zread URL: https://zread.ai/{author}/{repo}
+                        final zreadUrl = 'https://zread.ai/${widget.repository.author}/$repoName';
+                        
+                        if (kDebugMode) {
+                          print("Opening Zread URL: $zreadUrl");
+                        }
+                        
+                        try {
+                          final uri = Uri.parse(zreadUrl);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          } else {
+                            if (kDebugMode) {
+                              print("Cannot launch URL: $zreadUrl");
+                            }
+                          }
+                        } catch (e) {
+                          if (kDebugMode) {
+                            print("Error launching Zread URL: $e");
+                          }
+                        }
                       },
                     ),
                   ],
