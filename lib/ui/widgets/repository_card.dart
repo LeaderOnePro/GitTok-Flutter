@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart'; // Import for URL launching
 import '../../models/repository.dart'; // Adjust import path as needed
 import '../../services/api_service.dart'; // Import ApiService
 import '../screens/deepwiki_page.dart'; // Import for DeepWikiPage
+import '../screens/zread_page.dart'; // Import for ZreadPage
 import '../theme/language_colors.dart'; // Import language color system
 
 // Redesigned RepositoryCard with improved visual hierarchy
@@ -694,7 +695,7 @@ class _RepositoryCardState extends State<RepositoryCard> {
     );
   }
 
-  void _openZread() async {
+  void _openZread() {
     String repoName = widget.repository.name;
     if (repoName.contains('/')) {
       repoName = repoName.split('/').last;
@@ -702,16 +703,12 @@ class _RepositoryCardState extends State<RepositoryCard> {
 
     final zreadUrl = 'https://zread.ai/${widget.repository.author}/$repoName';
 
-    try {
-      final uri = Uri.parse(zreadUrl);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error launching Zread URL: $e");
-      }
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ZreadPage(url: zreadUrl),
+      ),
+    );
   }
 
   void _shareRepository() async {
