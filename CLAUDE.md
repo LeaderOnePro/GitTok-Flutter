@@ -42,6 +42,7 @@ This is a Flutter application that replicates TikTok-style scrolling for GitHub 
 **Key Components:**
 - `HomePage` - Main container with vertical PageView and filtering controls
 - `RepositoryCard` - Full-screen cards with blurred background effects using Stack + BackdropFilter
+- `DeepWikiPage` & `ZreadPage` - WebView-based screens for in-app browsing of external services
 - `FilterChips` - Time range selection (daily/weekly/monthly)
 - `ApiService` - Handles all external API communications
 
@@ -61,18 +62,24 @@ This is a Flutter application that replicates TikTok-style scrolling for GitHub 
 - **Effects**: BackdropFilter blur + semi-transparent overlays
 
 ### External Integrations
-- **DeepWiki**: Replaces `github.com` with `deepwiki.com` in repository URLs
-- **Zread**: Opens `https://zread.ai/{author}/{repo}` for repository analysis
+- **DeepWiki**: Uses `DeepWikiPage` component with WebView for in-app browsing of `deepwiki.com` URLs
+- **Zread**: Uses `ZreadPage` component with WebView for in-app browsing of `https://zread.ai/{author}/{repo}`
 - **Share**: Native sharing via SharePlus package
-- **WebView**: In-app browsing for DeepWiki pages
+- **WebView**: Both DeepWiki and Zread use dedicated WebView pages for consistent in-app experience
 
 ### Key Technical Decisions
 - Uses `PageView.builder` with `BouncingScrollPhysics` for smooth vertical scrolling
 - AI summaries are lazily loaded on-demand to avoid API rate limits
 - Extensive null-safety handling in JSON parsing due to variable API response formats
-- Cross-platform URL launching via `url_launcher` package
+- Both DeepWiki and Zread buttons use `Navigator.push()` to WebView pages instead of external browser launching
+- WebView components use `JavaScriptMode.unrestricted` for full functionality
 
 ### Known Limitations
 - Web platform may have CORS restrictions for avatar images
 - Android builds can be slow on first run due to Gradle dependency downloads
 - Test files reference incorrect package name (`myapp` instead of `gittok`)
+
+### Recent Fixes
+- Fixed Android Zread button behavior to use in-app WebView instead of external browser
+- Both DeepWiki and Zread now provide consistent in-app browsing experience
+- Added proper error handling and navigation patterns for WebView components
